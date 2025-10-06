@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { MinimalTiptapEditor } from '@/components/minimal-tiptap/minimal-tiptap';
 import FileUpload from '@/components/ui/file-upload';
+import { DateTimePicker } from '@/components/ui/datetime-picker';
 import {
   Select,
   SelectContent,
@@ -15,6 +16,8 @@ export default function LinkedIn() {
   const [mediaFiles, setMediaFiles] = useState([]);
   const [postType, setPostType] = useState('post');
   const [selectedAccount, setSelectedAccount] = useState('personal');
+  const [isScheduled, setIsScheduled] = useState(false);
+  const [scheduledDateTime, setScheduledDateTime] = useState(new Date());
 
   // Function to count text content from HTML
   const getTextContent = (html) => {
@@ -525,14 +528,34 @@ export default function LinkedIn() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-medium text-gray-700">Schedule Post</label>
-                  <div className="relative inline-flex items-center">
-                    <input type="checkbox" className="sr-only" />
-                    <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                  </div>
+                  <button
+                    onClick={() => setIsScheduled(!isScheduled)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      isScheduled ? 'bg-blue-600' : 'bg-gray-200'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        isScheduled ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
                 </div>
+                
+                {isScheduled && (
+                  <div className="space-y-3">
+                    <label className="text-sm font-medium text-gray-700">Schedule Date & Time</label>
+                    <DateTimePicker
+                      selectedDate={scheduledDateTime}
+                      selectedTime={scheduledDateTime}
+                      onDateTimeChange={setScheduledDateTime}
+                    />
+                  </div>
+                )}
+                
                 <div className="flex gap-3">
                   <button className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium">
-                    Post Now
+                    {isScheduled ? 'Schedule Post' : 'Post Now'}
                   </button>
                   <button className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-sm font-medium">
                     Save as Draft

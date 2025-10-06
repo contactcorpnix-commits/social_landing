@@ -7,6 +7,7 @@ import { Heart, MessageCircle, Send, Bookmark, EllipsisVertical, Music, Play, Re
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { DateTimePicker } from '@/components/ui/datetime-picker';
 
 
 
@@ -15,6 +16,9 @@ export default function InstagramPost() {
   const [mediaFiles, setMediaFiles] = useState([]);
   const [postType, setPostType] = useState('feed');
   const [charCount, setCharCount] = useState(0);
+  const [isScheduled, setIsScheduled] = useState(false);
+  const [scheduledDateTime, setScheduledDateTime] = useState(null);
+  const [scheduleConfirmed, setScheduleConfirmed] = useState(false);
 
   useEffect(() => {
     const textContent = caption.replace(/<[^>]*>/g, '');
@@ -24,6 +28,46 @@ export default function InstagramPost() {
   const handleMediaUpload = async (files) => {
     console.log('Uploading files:', files);
     // Handle file upload logic here
+  };
+
+  const handleScheduleToggle = (checked) => {
+    setIsScheduled(checked);
+    if (!checked) {
+      setScheduledDateTime(null);
+      setScheduleConfirmed(false);
+    }
+  };
+
+  const handleDateTimeChange = (dateTime) => {
+    setScheduledDateTime(dateTime);
+    setScheduleConfirmed(false);
+  };
+
+  const handlePublishNow = () => {
+    if (isScheduled && scheduledDateTime) {
+      const now = new Date();
+      if (scheduledDateTime <= now) {
+        alert('Please select a future date and time for scheduling.');
+        return;
+      }
+      setScheduleConfirmed(true);
+      console.log('Publishing scheduled for:', scheduledDateTime);
+    } else {
+      console.log('Publishing now...');
+    }
+  };
+
+  const formatScheduledTime = (date) => {
+    if (!date) return '';
+    return date.toLocaleString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
   };
 
   // Feed Post Preview Component
@@ -394,13 +438,51 @@ export default function InstagramPost() {
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
                   <Label className="text-sm font-medium text-gray-700">Schedule Post</Label>
-                  <Switch id="schedule-post" />
+                  <Switch 
+                    id="schedule-post" 
+                    checked={isScheduled}
+                    onCheckedChange={handleScheduleToggle}
+                  />
                 </div>
+                
+                {isScheduled && (
+                  <div className="space-y-3 p-4 bg-gray-50 rounded-lg border">
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                        Select Date & Time
+                      </Label>
+                      <DateTimePicker
+                        value={scheduledDateTime}
+                        onChange={handleDateTimeChange}
+                        placeholder="Choose date and time"
+                      />
+                    </div>
+                    
+                    {scheduledDateTime && (
+                      <div className="text-sm text-gray-600">
+                        <p className="font-medium">Scheduled for:</p>
+                        <p className="text-blue-600 font-medium">
+                          {formatScheduledTime(scheduledDateTime)}
+                        </p>
+                      </div>
+                    )}
+                    
+                    {scheduleConfirmed && (
+                      <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md text-sm text-green-800">
+                        ✓ Your post has been scheduled successfully!
+                      </div>
+                    )}
+                  </div>
+                )}
+                
                 <div className="flex gap-3">
-                  <Button className="flex-1 text-sm font-medium">
-                    Publish Now
+                  <Button 
+                    className="flex-1 text-sm font-medium"
+                    onClick={handlePublishNow}
+                  >
+                    {isScheduled ? 'Schedule Post' : 'Publish Now'}
                   </Button>
-                  <Button className="flex-1 text-sm font-medium">
+                  <Button className="flex-1 text-sm font-medium" variant="outline">
                     Save as Draft
                   </Button>
                 </div>

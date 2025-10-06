@@ -3,6 +3,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { MinimalTiptapEditor } from '@/components/minimal-tiptap/minimal-tiptap';
 import FileUpload from '@/components/ui/file-upload';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DateTimePicker } from '@/components/ui/datetime-picker';
 import { ThumbsUp, MessageCircle, Share, Globe, Users, Lock, Clock, Calendar, Video, Image as ImageIcon, FileText } from 'lucide-react';
 
 export default function Facebook() {
@@ -11,6 +12,8 @@ export default function Facebook() {
   const [postType, setPostType] = useState('post');
   const [audience, setAudience] = useState('public');
   const [charCount, setCharCount] = useState(0);
+  const [isScheduled, setIsScheduled] = useState(false);
+  const [scheduledDateTime, setScheduledDateTime] = useState(new Date());
 
   useEffect(() => {
     const textContent = caption.replace(/<[^>]*>/g, '');
@@ -464,14 +467,32 @@ export default function Facebook() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-medium text-gray-700">Schedule Post</label>
-                  <div className="relative inline-flex items-center">
-                    <input type="checkbox" className="sr-only" />
-                    <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                  </div>
+                  <button
+                    onClick={() => setIsScheduled(!isScheduled)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                      isScheduled ? 'bg-blue-600' : 'bg-gray-200'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        isScheduled ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
                 </div>
+                {isScheduled && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Schedule Date & Time</label>
+                    <DateTimePicker
+                      value={scheduledDateTime}
+                      onChange={setScheduledDateTime}
+                      className="w-full"
+                    />
+                  </div>
+                )}
                 <div className="flex gap-3">
                   <button className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium">
-                    Publish Now
+                    {isScheduled ? 'Schedule Post' : 'Publish Now'}
                   </button>
                   <button className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-sm font-medium">
                     Save as Draft

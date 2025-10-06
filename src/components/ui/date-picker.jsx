@@ -16,10 +16,20 @@ function DatePicker({
   onSelect,
   placeholder = "Pick a date",
   className,
+  autoClose = false,
   ...props
 }) {
+  const [open, setOpen] = React.useState(false)
+
+  const handleSelect = (date) => {
+    onSelect(date)
+    if (autoClose && date) {
+      setOpen(false)
+    }
+  }
+
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           variant={"outline"}
@@ -38,7 +48,7 @@ function DatePicker({
         <Calendar
           mode="single"
           selected={selected}
-          onSelect={onSelect}
+          onSelect={handleSelect}
           initialFocus
         />
       </PopoverContent>

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { MinimalTiptapEditor } from '@/components/minimal-tiptap/minimal-tiptap';
 import FileUpload from '@/components/ui/file-upload';
+import { DateTimePicker } from '@/components/ui/datetime-picker';
 import {
   Select,
   SelectContent,
@@ -10,172 +11,218 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-// Twitter Post Preview Components
-const TweetPreview = ({ content, mediaFiles }) => {
-  const getTextContent = (html) => {
-    if (!html) return 0;
-    const div = document.createElement('div');
-    div.innerHTML = html;
-    return div.textContent.length || div.innerText.length || 0;
-  };
-
-  const charCount = getTextContent(content);
-
-  return (
-    <div className="border border-gray-200 rounded-lg overflow-hidden">
-      {/* Twitter Tweet Mock */}
-      <div className="bg-white p-4">
-        <div className="flex items-start gap-3 mb-3">
-          <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
-          <div className="flex-1">
-            <div className="flex items-center gap-1 mb-1">
-              <span className="font-semibold text-sm">Your Name</span>
-              <span className="text-gray-500 text-sm">@yourusername</span>
-              <span className="text-gray-500 text-sm">·</span>
-              <span className="text-gray-500 text-sm">1m</span>
-            </div>
-            <div className="text-gray-800 mb-3">
-              {content ? (
-                <div dangerouslySetInnerHTML={{ __html: content }} />
-              ) : (
-                <p>Your tweet content will appear here...</p>
-              )}
-            </div>
-            
-            {/* Media placeholder */}
-            {mediaFiles.length > 0 && (
-              <div className="aspect-video bg-gray-100 rounded-lg mb-3 flex items-center justify-center">
-                <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              </div>
+// Preview Components
+const TweetPreview = ({ content, mediaFiles }) => (
+  <div className="border border-gray-200 rounded-lg overflow-hidden">
+    <div className="bg-white p-4">
+      <div className="flex items-start gap-3 mb-3">
+        <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+        <div className="flex-1">
+          <div className="flex items-center gap-1 mb-1">
+            <span className="font-semibold text-sm">Your Name</span>
+            <span className="text-gray-500 text-sm">@username</span>
+            <span className="text-gray-500 text-sm">·</span>
+            <span className="text-gray-500 text-sm">1h</span>
+          </div>
+          <div className="text-gray-800 mb-3">
+            {content ? (
+              <div dangerouslySetInnerHTML={{ __html: content }} />
+            ) : (
+              <p>Your tweet content will appear here...</p>
             )}
-            
-            {/* Tweet actions */}
-            <div className="flex items-center justify-between text-gray-500 text-sm">
-              <button className="flex items-center gap-2 hover:text-blue-600 hover:bg-blue-50 px-2 py-1 rounded">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
-                </svg>
-                <span>0</span>
-              </button>
-              
-              <button className="flex items-center gap-2 hover:text-green-600 hover:bg-green-50 px-2 py-1 rounded">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                <span>0</span>
-              </button>
-              
-              <button className="flex items-center gap-2 hover:text-red-600 hover:bg-red-50 px-2 py-1 rounded">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-                <span>0</span>
-              </button>
-              
-              <button className="flex items-center gap-2 hover:text-blue-600 hover:bg-blue-50 px-2 py-1 rounded">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
-                </svg>
-              </button>
-            </div>
           </div>
-        </div>
-      </div>
-      {/* Character count */}
-      <div className="mt-2 text-xs text-gray-500 text-center">
-        {charCount}/280 characters
-      </div>
-    </div>
-  );
-};
-
-const ThreadPreview = ({ content, mediaFiles }) => {
-  return (
-    <div className="border border-gray-200 rounded-lg overflow-hidden">
-      {/* Thread Mock */}
-      <div className="bg-white p-4">
-        <div className="flex items-start gap-3 mb-3">
-          <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
-          <div className="flex-1">
-            <div className="flex items-center gap-1 mb-1">
-              <span className="font-semibold text-sm">Your Name</span>
-              <span className="text-gray-500 text-sm">@yourusername</span>
-              <span className="text-gray-500 text-sm">·</span>
-              <span className="text-gray-500 text-sm">1m</span>
-            </div>
-            <div className="text-gray-800 mb-3">
-              {content ? (
-                <div dangerouslySetInnerHTML={{ __html: content }} />
-              ) : (
-                <p>Your thread content will appear here...</p>
-              )}
-            </div>
-            
-            {/* Thread indicator */}
-            <div className="flex items-center gap-2 text-blue-600 text-sm mb-3">
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clipRule="evenodd" />
+          
+          {/* Media placeholder */}
+          {mediaFiles.length > 0 && (
+            <div className="aspect-video bg-gray-100 rounded-lg mb-3 flex items-center justify-center">
+              <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              <span>Show this thread</span>
             </div>
+          )}
+          
+          {/* Tweet actions */}
+          <div className="flex items-center justify-between text-gray-500 text-sm">
+            <button className="flex items-center gap-2 hover:text-blue-600 hover:bg-blue-50 px-2 py-1 rounded">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+              <span>Reply</span>
+            </button>
+            
+            <button className="flex items-center gap-2 hover:text-green-600 hover:bg-green-50 px-2 py-1 rounded">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span>Retweet</span>
+            </button>
+            
+            <button className="flex items-center gap-2 hover:text-red-600 hover:bg-red-50 px-2 py-1 rounded">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+              <span>Like</span>
+            </button>
+            
+            <button className="flex items-center gap-2 hover:text-blue-600 hover:bg-blue-50 px-2 py-1 rounded">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+              </svg>
+              <span>Share</span>
+            </button>
           </div>
         </div>
       </div>
     </div>
-  );
-};
+  </div>
+);
 
-const SpacePreview = ({ content }) => {
-  return (
-    <div className="border border-gray-200 rounded-lg overflow-hidden">
+const ThreadPreview = ({ content, mediaFiles }) => (
+  <div className="border border-gray-200 rounded-lg overflow-hidden">
+    <div className="bg-white p-4">
+      {/* Thread line */}
+      <div className="flex gap-3">
+        <div className="flex flex-col items-center">
+          <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+          <div className="w-0.5 h-20 bg-gray-300 mt-2"></div>
+        </div>
+        <div className="flex-1">
+          <div className="flex items-center gap-1 mb-1">
+            <span className="font-semibold text-sm">Your Name</span>
+            <span className="text-gray-500 text-sm">@username</span>
+            <span className="text-gray-500 text-sm">·</span>
+            <span className="text-gray-500 text-sm">1h</span>
+          </div>
+          <div className="text-gray-800 mb-3">
+            {content ? (
+              <div dangerouslySetInnerHTML={{ __html: content }} />
+            ) : (
+              <p>Your thread content will appear here...</p>
+            )}
+          </div>
+          
+          {/* Media placeholder */}
+          {mediaFiles.length > 0 && (
+            <div className="aspect-video bg-gray-100 rounded-lg mb-3 flex items-center justify-center">
+              <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+          )}
+          
+          {/* Show reply indicator */}
+          <div className="text-blue-600 text-sm font-medium mb-2">
+            Show this thread
+          </div>
+        </div>
+      </div>
+      
+      {/* Additional tweets in thread */}
+      <div className="flex gap-3 mt-4">
+        <div className="flex flex-col items-center">
+          <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+          <div className="w-0.5 h-20 bg-gray-300 mt-2"></div>
+        </div>
+        <div className="flex-1">
+          <div className="flex items-center gap-1 mb-1">
+            <span className="font-semibold text-sm">Your Name</span>
+            <span className="text-gray-500 text-sm">@username</span>
+            <span className="text-gray-500 text-sm">·</span>
+            <span className="text-gray-500 text-sm">1h</span>
+          </div>
+          <div className="text-gray-800 mb-3">
+            <p>Additional tweets in your thread will appear here...</p>
+          </div>
+        </div>
+      </div>
+      
+      <div className="flex gap-3 mt-4">
+        <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+        <div className="flex-1">
+          <div className="flex items-center gap-1 mb-1">
+            <span className="font-semibold text-sm">Your Name</span>
+            <span className="text-gray-500 text-sm">@username</span>
+            <span className="text-gray-500 text-sm">·</span>
+            <span className="text-gray-500 text-sm">1h</span>
+          </div>
+          <div className="text-gray-800 mb-3">
+            <p>Final tweet in your thread will appear here...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const SpacePreview = ({ content }) => (
+  <div className="border border-gray-200 rounded-lg overflow-hidden">
+    <div className="bg-white">
       {/* Twitter Space Mock */}
       <div className="bg-gradient-to-br from-blue-500 to-purple-600 p-6 text-white">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" clipRule="evenodd" />
+            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
             </svg>
           </div>
           <div>
-            <h3 className="font-semibold">{content ? 'Your Space Title' : 'Space Title'}</h3>
-            <p className="text-sm opacity-90">Hosted by @yourusername</p>
+            <h3 className="font-semibold">Your Space Title</h3>
+            <p className="text-sm opacity-90">Hosted by @username</p>
           </div>
         </div>
         
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-            <span className="text-sm">Live</span>
+        <div className="flex items-center gap-4 text-sm">
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+            <span>Live</span>
           </div>
-          
-          <div className="text-sm opacity-90">
-            {content ? (
-              <div dangerouslySetInnerHTML={{ __html: content }} />
-            ) : (
-              <p>Space description will appear here...</p>
-            )}
-          </div>
-          
-          <div className="flex items-center gap-4 mt-4">
-            <div className="flex -space-x-2">
-              <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full"></div>
-              <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full"></div>
-              <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full"></div>
-            </div>
-            <span className="text-sm">3 listening</span>
-          </div>
+          <span>•</span>
+          <span>1.2K listeners</span>
         </div>
       </div>
+      
+      {/* Space description */}
+      <div className="p-4">
+        <div className="text-gray-800 mb-4">
+          {content ? (
+            <div dangerouslySetInnerHTML={{ __html: content }} />
+          ) : (
+            <p>Your Space description will appear here...</p>
+          )}
+        </div>
+        
+        {/* Participants */}
+        <div className="space-y-3">
+          <div className="text-sm font-medium text-gray-700">Speakers (3)</div>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
+            <span className="text-sm">Speaker 1</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
+            <span className="text-sm">Speaker 2</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
+            <span className="text-sm">Speaker 3</span>
+          </div>
+        </div>
+        
+        {/* Join button */}
+        <button className="w-full mt-4 px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors text-sm font-medium">
+          Join Space
+        </button>
+      </div>
     </div>
-  );
-};
+  </div>
+);
 
 export default function Twitter() {
   const [postType, setPostType] = useState('tweet');
   const [tweetContent, setTweetContent] = useState('');
   const [mediaFiles, setMediaFiles] = useState([]);
+  const [isScheduled, setIsScheduled] = useState(false);
+  const [scheduledDateTime, setScheduledDateTime] = useState(new Date());
 
   // Function to count text content from HTML
   const getTextContent = (html) => {
@@ -364,13 +411,12 @@ export default function Twitter() {
                   onUpload={handleMediaUpload}
                 >
                   <FileUpload.Dropzone className="mb-4">
-                    <div className="flex flex-col items-center gap-2">
-                      <svg className="w-12 h-12 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                      </svg>
-                      <p className="text-sm text-gray-600 mb-1">Drop your media here, or <span className="text-blue-600 cursor-pointer hover:underline">browse</span></p>
-                      <p className="text-xs text-gray-500">Support JPG, PNG, MP4, GIF up to 5MB</p>
-                    </div>
+                    <FileUpload.Item className="group">
+                      <FileUpload.ItemPreview />
+                      <FileUpload.ItemMetadata />
+                      <FileUpload.ItemProgress />
+                      <FileUpload.ItemDelete />
+                    </FileUpload.Item>
                   </FileUpload.Dropzone>
 
                   <FileUpload.List>
@@ -404,14 +450,37 @@ export default function Twitter() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-medium text-gray-700">Schedule {postType === 'space' ? 'Space' : 'Tweet'}</label>
-                  <div className="relative inline-flex items-center">
-                    <input type="checkbox" className="sr-only" />
-                    <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-black"></div>
-                  </div>
+                  <button
+                    onClick={() => setIsScheduled(!isScheduled)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 ${
+                      isScheduled ? 'bg-black' : 'bg-gray-200'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        isScheduled ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
                 </div>
+                
+                {isScheduled && (
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Schedule Date & Time
+                    </label>
+                    <DateTimePicker
+                      selectedDate={scheduledDateTime}
+                      selectedTime={scheduledDateTime}
+                      onDateChange={setScheduledDateTime}
+                      onTimeChange={setScheduledDateTime}
+                    />
+                  </div>
+                )}
+                
                 <div className="flex gap-3">
                   <button className="flex-1 px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-colors text-sm font-medium">
-                    {postType === 'space' ? 'Schedule Space' : 'Tweet Now'}
+                    {isScheduled ? 'Schedule' : (postType === 'space' ? 'Start Space' : 'Tweet Now')}
                   </button>
                   <button className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-sm font-medium">
                     Save as Draft
