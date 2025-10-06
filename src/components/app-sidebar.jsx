@@ -18,6 +18,7 @@ import {
   Star,
   Calendar,
   LayoutDashboard,
+  UserRoundCog
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -99,6 +100,11 @@ const data = {
           title: "Schedule",
           url: "/dashboard/schedule",
           icon: Calendar,
+        },
+        {
+          title: "Manage Accounts",
+          url: "/dashboard/accounts",
+          icon: UserRoundCog,
         },
       ],
     },
