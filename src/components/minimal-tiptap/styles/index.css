@@ -100,11 +100,11 @@
 
 .minimal-tiptap-editor .ProseMirror {
   @apply flex max-w-full cursor-text flex-col;
-  @apply z-0 outline-0;
+  @apply z-0 outline-0 h-full;
 }
 
 .minimal-tiptap-editor .ProseMirror > div.editor {
-  @apply block flex-1 whitespace-pre-wrap;
+  @apply block whitespace-pre-wrap h-full;
 }
 
 .minimal-tiptap-editor .ProseMirror .block-node:not(:last-child),

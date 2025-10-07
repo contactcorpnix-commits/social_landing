@@ -4,7 +4,12 @@ import { MinimalTiptapEditor } from '@/components/minimal-tiptap/minimal-tiptap'
 import FileUpload from '@/components/ui/file-upload';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DateTimePicker } from '@/components/ui/datetime-picker';
-import { ThumbsUp, MessageCircle, Share, Globe, Users, Lock, Clock, Calendar, Video, Image as ImageIcon, FileText } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Send, ThumbsUp, MessageCircle, Share, Globe, Users, Lock, Clock, Calendar, Video, Image as ImageIcon, FileText, Hash, User, ChevronDown, Sparkles, Save } from 'lucide-react';
 
 export default function Facebook() {
   const [caption, setCaption] = useState('');
@@ -14,11 +19,44 @@ export default function Facebook() {
   const [charCount, setCharCount] = useState(0);
   const [isScheduled, setIsScheduled] = useState(false);
   const [scheduledDateTime, setScheduledDateTime] = useState(new Date());
+  const [selectedUser, setSelectedUser] = useState('');
+  const [hashtags, setHashtags] = useState('');
+  const [suggestedHashtags, setSuggestedHashtags] = useState([]);
+
+  // Mock user data
+  const users = [
+    { id: 'atif', name: 'Atif Ansari', username: '@atifansari', avatar: 'A' },
+    { id: 'john', name: 'John Doe', username: '@johndoe', avatar: 'J' },
+    { id: 'jane', name: 'Jane Smith', username: '@janesmith', avatar: 'JS' },
+    { id: 'business', name: 'Business Page', username: '@mybusiness', avatar: 'B' }
+  ];
 
   useEffect(() => {
     const textContent = caption.replace(/<[^>]*>/g, '');
     setCharCount(textContent.length);
   }, [caption]);
+
+  // Generate suggested hashtags based on caption content
+  const generateSuggestedHashtags = () => {
+    const textContent = caption.replace(/<[^>]*>/g, '').toLowerCase();
+    const commonWords = ['the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'a', 'an', 'is', 'was', 'are', 'were', 'be', 'been', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'must', 'can', 'this', 'that', 'these', 'those'];
+    
+    const words = textContent.split(/\s+/).filter(word => 
+      word.length > 3 && !commonWords.includes(word) && !word.match(/^\d+$/)
+    );
+    
+    const uniqueWords = [...new Set(words)].slice(0, 8);
+    const suggested = uniqueWords.map(word => `#${word}`);
+    
+    setSuggestedHashtags(suggested);
+  };
+
+  // Add hashtag to the hashtags field
+  const addHashtag = (hashtag) => {
+    if (!hashtags.includes(hashtag)) {
+      setHashtags(prev => prev ? `${prev} ${hashtag}` : hashtag);
+    }
+  };
 
   // Handle media file upload
   const handleMediaUpload = async (files, { onProgress, onSuccess, onError }) => {
@@ -315,110 +353,126 @@ export default function Facebook() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Left Column - Form */}
         <div className="space-y-6">
-          {/* Account Selection */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Select Account</CardTitle>
-              <CardDescription>Choose which Facebook account to post from</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Select>
-                <SelectTrigger className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <SelectValue placeholder="Select Account"/>
+          {/* User Selection */}
+          <div className='space-y-6'>
+            {/* User Selection */}
+            <div className='space-y-2'>
+              <Label htmlFor="user-select" className="block text-sm font-medium text-gray-700">Select User</Label>
+                <Select value={selectedUser} onValueChange={setSelectedUser}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a user">
+                    {selectedUser && (
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                          {users.find(u => u.id === selectedUser)?.avatar}
+                        </div>
+                        <span>{users.find(u => u.id === selectedUser)?.name}</span>
+                      </div>
+                    )}
+                  </SelectValue>
                 </SelectTrigger>
-                <SelectContent className="SelectContent" position="popper" sideOffset={5} align="start" avoidCollisions={true}>
-                  <SelectItem value="personal">Personal Account</SelectItem>
-                  <SelectItem value="business">Business Page</SelectItem>
-                  <SelectItem value="group">Group</SelectItem>
+                <SelectContent>
+                  {users.map((user) => (
+                    <SelectItem key={user.id} value={user.id}>
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                          {user.avatar}
+                        </div>
+                        <div>
+                          <div className="font-medium">{user.name}</div>
+                          <div className="text-sm text-gray-500">{user.username}</div>
+                        </div>
+                      </div>
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
-            </CardContent>
-          </Card>
-
-          {/* Post Type Selection */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Post Type</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Select value={postType} onValueChange={setPostType}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Select Post type" />
+            </div>
+            <div className='space-y-2'>
+                <Label htmlFor="post-type" className="block text-sm font-medium text-gray-700">Post Type</Label>
+                <Select value={postType} onValueChange={setPostType}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="SelectContent" position="popper" sideOffset={5} align="start" avoidCollisions={true}>
-                  <SelectItem value="post">Feed Post</SelectItem>
-                  <SelectItem value="story">Story</SelectItem>
-                  <SelectItem value="reel">Reel</SelectItem>
-                </SelectContent>
-              </Select>
-            </CardContent>
-          </Card>
-
-          {/* Audience Selection */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Audience</CardTitle>
-              <CardDescription>Who can see your post?</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Select value={audience} onValueChange={setAudience}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Select Audience" />
-                </SelectTrigger>
-                <SelectContent className="SelectContent" position="popper" sideOffset={5} align="start" avoidCollisions={true}>
-                  <SelectItem value="public">
+                <SelectContent>
+                  <SelectItem value="post">
                     <div className="flex items-center gap-2">
-                      <Globe className="w-4 h-4" />
-                      Public
+                      <FileText className="w-4 h-4" />
+                      <span>Feed Post</span>
                     </div>
                   </SelectItem>
-                  <SelectItem value="friends">
+                  <SelectItem value="story">
                     <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4" />
-                      Friends
+                      <ImageIcon className="w-4 h-4" />
+                      <span>Story</span>
                     </div>
                   </SelectItem>
-                  <SelectItem value="onlyme">
+                  <SelectItem value="reel">
                     <div className="flex items-center gap-2">
-                      <Lock className="w-4 h-4" />
-                      Only Me
+                      <Video className="w-4 h-4" />
+                      <span>Reel</span>
                     </div>
                   </SelectItem>
                 </SelectContent>
               </Select>
-            </CardContent>
-          </Card>
-
-          {/* Post Content */}
-          <Card>
-            <CardHeader>
-              <CardTitle>What's on your mind?</CardTitle>
-              <CardDescription className="sr-only">Write your Facebook post</CardDescription>
-            </CardHeader>
-            <CardContent>
+            </div>
+            <div className='space-y-2'>
+              <Label htmlFor="caption" className="block text-sm font-medium text-gray-700">Caption</Label>
               <MinimalTiptapEditor
                 value={caption}
                 onChange={setCaption}
+                className="w-full h-[200px] px-2"
                 placeholder="What's on your mind?"
-                className="w-full"
-                editorContentClassName="p-3"
+                editable={true}
+                editorClassName="focus:outline-none"
               />
               <div className="flex justify-between items-center mt-2">
-                <div className="text-xs text-gray-500">{charCount}/2000 characters</div>
-                <button className="text-xs text-blue-600 hover:text-blue-700 font-medium">
-                  Add Feeling/Activity
-                </button>
+                <span className="text-sm text-gray-500">{charCount}/2000 characters</span>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Media Upload */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Add Media</CardTitle>
-              <CardDescription className="sr-only">Upload photos, videos, or documents</CardDescription>
-            </CardHeader>
-            <CardContent>
+            </div>
+            <div>
+                  <div className="space-y-2">
+                <Label htmlFor="hashtags">Hashtags</Label>
+                <Textarea
+                  id="hashtags"
+                  value={hashtags}
+                  onChange={(e) => setHashtags(e.target.value)}
+                  placeholder="#socialmedia #marketing #facebook"
+                  className="min-h-[80px]"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex items-center justify-between my-2">
+                  <Label>Suggested Hashtags</Label>
+                  <Button
+                    onClick={generateSuggestedHashtags}
+                    variant="outline"
+                    size="sm"
+                    className="h-8"
+                  >
+                    <Sparkles className="w-3 h-3 mr-1" />
+                    Generate
+                  </Button>
+                </div>
+                {suggestedHashtags.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {suggestedHashtags.map((hashtag, index) => (
+                      <Badge
+                        key={index}
+                        variant="secondary"
+                        className="cursor-pointer hover:bg-blue-100 hover:text-blue-800"
+                        onClick={() => addHashtag(hashtag)}
+                      >
+                        <Hash className="w-3 h-3 mr-1" />
+                        {hashtag}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className='space-y-2'>
               <FileUpload
                 value={mediaFiles}
                 onValueChange={setMediaFiles}
@@ -455,16 +509,9 @@ export default function Facebook() {
                   </div>
                 )}
               </FileUpload>
-            </CardContent>
-          </Card>
-
-          {/* Publishing Options */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Publishing Options</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+            </div>
+            <div className='space-y-2'>
+                <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-medium text-gray-700">Schedule Post</label>
                   <button
@@ -491,16 +538,18 @@ export default function Facebook() {
                   </div>
                 )}
                 <div className="flex gap-3">
-                  <button className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium">
-                    {isScheduled ? 'Schedule Post' : 'Publish Now'}
-                  </button>
-                  <button className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-sm font-medium">
-                    Save as Draft
-                  </button>
+                  <Button variant="outline" className="flex-1">
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Draft
+                  </Button>
+                  <Button className="flex-1">
+                    <Send className="w-4 h-4 mr-2" />
+                    {isScheduled ? 'Schedule Now' : 'Publish Post Now'}
+                  </Button>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
 
         {/* Right Column - Preview */}

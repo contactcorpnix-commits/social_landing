@@ -1,7 +1,9 @@
+import CalendarComponent from './calendar-component';
+
 export default function Schedule() {
   return (
-    <div>
-      <h1>Schedule</h1>
+    <div className="container mx-auto p-6">
+      <CalendarComponent />
     </div>
   );
 }
